@@ -403,6 +403,11 @@ class ColumnDefinition
         return ! in_array($methodName, ['morphs', 'nullableMorphs']) && ! $this->isPrimaryKeyMethod($methodName);
     }
 
+    protected function defaultsToNullable($methodName)
+    {
+        return preg_match('#(text|binary)$#i', $methodName);
+    }
+
     protected function guessLaravelMethod()
     {
         if ($this->primary && $this->unsigned && $this->autoIncrementing) {
@@ -491,6 +496,11 @@ class ColumnDefinition
         if ($this->defaultValue === 'NULL') {
             $this->defaultValue = null;
             $this->nullable = true;
+        }
+
+        // some columns default to "nullable" if not specified (e.g. "`description` text" is nullable)
+        if (is_null($this->nullable) && $this->defaultsToNullable($finalMethodName)) {
+            $this->nullable =true;
         }
 
         if($this->isNullableMethod($finalMethodName)){

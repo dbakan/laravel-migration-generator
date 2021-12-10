@@ -137,7 +137,7 @@ class ColumnTokenizerTest extends TestCase
         $this->assertCount(0, $columnDefinition->getMethodParameters());
         $this->assertNull($columnDefinition->isNullable());
         $this->assertNull($columnDefinition->getCollation());
-        $this->assertEquals('$table->text(\'notes\')', $columnDefinition->render());
+        $this->assertEquals('$table->text(\'notes\')->nullable()', $columnDefinition->render());
     }
 
     public function test_it_tokenizes_a_not_null_mediumtext_column()
@@ -165,7 +165,7 @@ class ColumnTokenizerTest extends TestCase
         $this->assertCount(0, $columnDefinition->getMethodParameters());
         $this->assertNull($columnDefinition->isNullable());
         $this->assertNull($columnDefinition->getCollation());
-        $this->assertEquals('$table->mediumText(\'notes\')', $columnDefinition->render());
+        $this->assertEquals('$table->mediumText(\'notes\')->nullable()', $columnDefinition->render());
     }
 
     public function test_it_tokenizes_a_not_null_longtext_column()
@@ -193,7 +193,35 @@ class ColumnTokenizerTest extends TestCase
         $this->assertCount(0, $columnDefinition->getMethodParameters());
         $this->assertNull($columnDefinition->isNullable());
         $this->assertNull($columnDefinition->getCollation());
-        $this->assertEquals('$table->longText(\'notes\')', $columnDefinition->render());
+        $this->assertEquals('$table->longText(\'notes\')->nullable()', $columnDefinition->render());
+    }
+
+    public function test_it_tokenizes_a_not_null_blob_column()
+    {
+        $columnTokenizer = ColumnTokenizer::parse('`notes` blob NOT NULL');
+        $columnDefinition = $columnTokenizer->definition();
+
+        $this->assertEquals('notes', $columnDefinition->getColumnName());
+        $this->assertEquals('blob', $columnTokenizer->getColumnDataType());
+        $this->assertEquals('binary', $columnDefinition->getMethodName());
+        $this->assertCount(0, $columnDefinition->getMethodParameters());
+        $this->assertFalse($columnDefinition->isNullable());
+        $this->assertNull($columnDefinition->getCollation());
+        $this->assertEquals('$table->binary(\'notes\')', $columnDefinition->render());
+    }
+
+    public function test_it_tokenizes_a_null_blob_column()
+    {
+        $columnTokenizer = ColumnTokenizer::parse('`notes` blob');
+        $columnDefinition = $columnTokenizer->definition();
+
+        $this->assertEquals('notes', $columnDefinition->getColumnName());
+        $this->assertEquals('blob', $columnTokenizer->getColumnDataType());
+        $this->assertEquals('binary', $columnDefinition->getMethodName());
+        $this->assertCount(0, $columnDefinition->getMethodParameters());
+        $this->assertNull($columnDefinition->isNullable());
+        $this->assertNull($columnDefinition->getCollation());
+        $this->assertEquals('$table->binary(\'notes\')->nullable()', $columnDefinition->render());
     }
 
     //endregion
