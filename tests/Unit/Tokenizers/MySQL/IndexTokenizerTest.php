@@ -132,6 +132,21 @@ class IndexTokenizerTest extends TestCase
         $this->assertEquals('$table->foreign(\'user_id\', \'fk_bank_accounts_user_id\')->references(\'id\')->on(\'users\')', $indexDefinition->render());
     }
 
+    public function test_it_tokenizes_two_column_foreign_key()
+    {
+        $indexTokenizer = IndexTokenizer::parse('CONSTRAINT `fk_bank_accounts_user_id` FOREIGN KEY (`user_id`, `other_id`) REFERENCES `users` (`id`, `second_id`)');
+        $indexDefinition = $indexTokenizer->definition();
+
+        $this->assertEquals('foreign', $indexDefinition->getIndexType());
+        $this->assertTrue($indexDefinition->isMultiColumnIndex());
+        $this->assertCount(2, $indexDefinition->getIndexColumns());
+        $this->assertEquals('users', $indexDefinition->getForeignReferencedTable());
+        $this->assertEquals(['id', 'second_id'], $indexDefinition->getForeignReferencedColumns());
+        $this->assertEquals(['user_id', 'other_id'], $indexDefinition->getIndexColumns());
+
+        $this->assertEquals('$table->foreign([\'user_id\', \'other_id\'], \'fk_bank_accounts_user_id\')->references([\'id\', \'second_id\'])->on(\'users\')', $indexDefinition->render());
+    }
+
     public function test_it_tokenizes_foreign_key_doesnt_use_index_name()
     {
         config()->set('laravel-migration-generator.definitions.use_defined_foreign_key_index_names', false);

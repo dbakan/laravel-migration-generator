@@ -24,6 +24,10 @@ abstract class BaseTokenizer
                 $prune = true;
             }
         }
+
+        // Composite keys may have spaces after the comma: (`id`, `other_id`)
+        $value = preg_replace('#`\s*,\s*`#', '`,`', $value);
+
         $this->tokens = array_map(function ($item) {
             return trim($item, ', ');
         }, str_getcsv($value, ' ', "'"));
