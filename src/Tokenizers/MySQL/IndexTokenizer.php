@@ -19,6 +19,13 @@ class IndexTokenizer extends BaseIndexTokenizer
             $this->consumeIndexColumns();
         }
 
+        if ($this->definition->getIndexType() === 'primary'
+            && is_null($this->definition->getIndexName())
+            && count($this->definition->getIndexColumns()) > 1
+        ) {
+            $this->definition->setIndexName('primary');
+        }
+
         return $this;
     }
 

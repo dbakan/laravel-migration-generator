@@ -209,4 +209,18 @@ class MySQLTableGeneratorTest extends TestCase
         $this->assertSchemaHas('$table->foreign(\'import_id\', \'fk_import_id\')->references(\'id\')->on(\'imports\');', $schema);
         $this->assertSchemaHas('$table->foreign(\'import_service_id\', \'fk_import_service_id\')->references(\'id\')->on(\'import_services\');', $schema);
     }
+
+    public function test_adds_primary_name_for_composite_key()
+    {
+        $generator = TableGenerator::init('test', [
+            '`import_id` bigint(20) unsigned DEFAULT NULL',
+            '`import_service_id` bigint(20) unsigned DEFAULT NULL',
+            'PRIMARY KEY (`import_id`,`import_service_id`)',
+        ]);
+
+        $schema = $generator->definition()->formatter()->getSchema();
+        $this->assertSchemaHas('$table->unsignedBigInteger(\'import_id\')->nullable();', $schema);
+        $this->assertSchemaHas('$table->unsignedBigInteger(\'import_service_id\')->nullable();', $schema);
+        $this->assertSchemaHas('$table->primary([\'import_id\', \'import_service_id\'], \'primary\');', $schema);
+    }
 }

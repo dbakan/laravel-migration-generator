@@ -56,7 +56,7 @@ class IndexTokenizerTest extends TestCase
         $this->assertCount(2, $indexDefinition->getIndexColumns());
         $this->assertEqualsCanonicalizing(['email', 'token'], $indexDefinition->getIndexColumns());
 
-        $this->assertEquals('$table->primary([\'email\', \'token\'])', $indexDefinition->render());
+        $this->assertEquals('$table->primary([\'email\', \'token\'], \'primary\')', $indexDefinition->render());
     }
 
     //endregion
