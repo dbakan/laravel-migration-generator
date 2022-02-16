@@ -223,4 +223,18 @@ class MySQLTableGeneratorTest extends TestCase
         $this->assertSchemaHas('$table->unsignedBigInteger(\'import_service_id\')->nullable();', $schema);
         $this->assertSchemaHas('$table->primary([\'import_id\', \'import_service_id\'], \'primary\');', $schema);
     }
+
+    public function test_complies_check_constraints()
+    {
+        $generator = TableGenerator::init('test', [
+            '`c1` bigint DEFAULT NULL',
+            '`c2` bigint DEFAULT NULL',
+            'CONSTRAINT `c1_nonzero` CHECK ((`c1` <> 0)),',
+            'CONSTRAINT `c1_greater_c2` CHECK ((`c1` > `c2`))'
+        ]);
+
+        $schema = $generator->definition()->formatter()->getSchema();
+        $this->assertSchemaHas('$table->checkConstraint("`c1` <> 0", \'c1_nonzero\');', $schema);
+        $this->assertSchemaHas('$table->checkConstraint("`c1` > `c2`", \'c1_greater_c2\');', $schema);
+    }
 }

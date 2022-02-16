@@ -255,4 +255,18 @@ class IndexTokenizerTest extends TestCase
     }
 
     //endregion
+
+    //region Check Constraint
+    public function test_it_tokenizes_check_constrained()
+    {
+        $indexTokenizer = IndexTokenizer::parse('CONSTRAINT `t1_chk_1` CHECK (((`role` <> _utf8mb4\'admin\') or (`company_id` is not null)))');
+        $indexDefinition = $indexTokenizer->definition();
+
+        $this->assertEquals('check', $indexDefinition->getIndexType());
+        $this->assertFalse($indexDefinition->isMultiColumnIndex());
+
+        $this->assertEquals('$table->checkConstraint("(`role` <> _utf8mb4\'admin\') or (`company_id` is not null)", \'t1_chk_1\')', $indexDefinition->render());
+    }
+
+    //endregion
 }
