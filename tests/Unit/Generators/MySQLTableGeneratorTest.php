@@ -224,7 +224,7 @@ class MySQLTableGeneratorTest extends TestCase
         $this->assertSchemaHas('$table->primary([\'import_id\', \'import_service_id\'], \'primary\');', $schema);
     }
 
-    public function test_complies_check_constraints()
+    public function test_compiles_check_constraints()
     {
         $generator = TableGenerator::init('test', [
             '`c1` bigint DEFAULT NULL',
