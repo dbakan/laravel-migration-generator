@@ -23,6 +23,8 @@ class IndexDefinition
 
     protected array $constraintActions = [];
 
+    protected string $checkConstraintSql;
+
     public function __construct($attributes = [])
     {
         foreach ($attributes as $attribute => $value) {
@@ -151,6 +153,17 @@ class IndexDefinition
         return $this;
     }
 
+    /**
+     * @param array $constraintActions
+     * @return IndexDefinition
+     */
+    public function setCheckConstraintSql(string $checkConstraintSql): IndexDefinition
+    {
+        $this->checkConstraintSql = $checkConstraintSql;
+
+        return $this;
+    }
+
     //endregion
 
     public function isMultiColumnIndex()
@@ -193,6 +206,14 @@ class IndexDefinition
             }
 
             return '$table->index(' . ValueToString::make($this->indexColumns) . $indexName . ')';
+        } elseif ($this->indexType === 'check') {
+            $indexName = '';
+            if (config('laravel-migration-generator.definitions.use_defined_index_names')) {
+                $indexName = ', \'' . $this->getIndexName() . '\'';
+            }
+
+            // return 'DB::statement("ALTER TABLE `<table_name>` ADD CONSTRAINT '.$this->checkConstraintSql.'")';
+            return '$table->checkConstraint(' . ValueToString::make($this->checkConstraintSql, false, false) . $indexName . ')';
         }
 
         return '';

@@ -15,6 +15,8 @@ class IndexTokenizer extends BaseIndexTokenizer
 
         if ($this->definition->getIndexType() === 'foreign') {
             $this->consumeForeignKey();
+        } elseif ($this->definition->getIndexType() === 'check') {
+            $this->consumeCheckConstraint();
         } else {
             $this->consumeIndexColumns();
         }
@@ -39,7 +41,18 @@ class IndexTokenizer extends BaseIndexTokenizer
         } elseif ($upper === 'KEY') {
             $this->definition->setIndexType('index');
         } elseif ($upper === 'CONSTRAINT') {
-            $this->definition->setIndexType('foreign');
+            // Can be a FOREIGN KEY or a CHECK CONSTRAINT.
+            $constraintName = $this->consume();
+            $constraintHint = $this->consume();
+
+            $this->putBack($constraintHint);
+            $this->putBack($constraintName);
+
+            if(strtoupper($constraintHint) === 'FOREIGN') {
+                $this->definition->setIndexType('foreign');
+            } else {
+                $this->definition->setIndexType('check');
+            }
         }
     }
 
@@ -101,5 +114,60 @@ class IndexTokenizer extends BaseIndexTokenizer
                 break;
             }
         }
+    }
+
+    private function consumeCheckConstraint()
+    {
+        $this->consume(); // CHECK
+
+        $pieces = [];
+        while ($token = $this->consume()) {
+            $pieces[] = $token;
+        }
+        $value = $this->removeSuperfluousParenthesis(implode(' ', $pieces));
+
+
+        $this->definition->setCheckConstraintSql($value);
+    }
+
+    private function removeSuperfluousParenthesis(string $input): string
+    {
+        if(substr($input, 0, 1) !== '(' || substr($input, -1, 1) !== ')') {
+            return $input;
+        }
+
+        $copy = trim($input);
+
+        while (substr($copy, 0, 1) === '(') {
+            $tmp = trim(substr($copy, 1, -1));
+            if($this->hasBalancedParenthesis($tmp)) {
+              $copy = $tmp;
+            } else {
+              break;
+            }
+        }
+
+        return $copy;
+
+    }
+
+    private function hasBalancedParenthesis(string $input): string
+    {
+        $chars = str_split($input);
+        $balance = 0;
+
+        foreach($chars as $c) {
+          if($c === '(') {
+            $balance++;
+          }
+          elseif ($c === ')') {
+            $balance--;
+            if($balance<0) {
+              return false;
+            }
+          }
+        }
+
+        return $balance === 0;
     }
 }
